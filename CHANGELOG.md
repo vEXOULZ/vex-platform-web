@@ -1,5 +1,14 @@
 # @vexoulz/platform-web
 
+## 0.3.0
+
+### Minor Changes
+
+- 11c0120: Related jobs (vex-platform 0.6): `JobOut.parent_id`, `client.related(id)` (`GET /jobs/{id}/related`), a `parent` filter
+  on `jobs()`, and `jobTree()` to lay a tree out as rows. `JobDetail` shows a "Queued by" link and, under the log, the
+  new `RelatedJobs`: the run's tree as an indented list and other runs on the same subject (turn off with
+  `:related="false"`). Older servers just show no tree.
+
 ## 0.2.1
 
 ### Patch Changes
