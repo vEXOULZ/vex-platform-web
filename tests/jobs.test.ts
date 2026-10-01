@@ -6,6 +6,7 @@ import {
   bytes,
   duration,
   jobActions,
+  jobTree,
   logLines,
   progressRatio,
   progressText,
@@ -134,5 +135,33 @@ describe('mergePages', () => {
     // Two rows arrived since the older page was read: it starts with rows the first page now has too.
     const older = [{ id: 3 }, { id: 2 }, { id: 1 }]
     expect(mergePages(first, older, (r) => r.id).map((r) => r.id)).toEqual([5, 4, 3, 2, 1])
+  })
+})
+
+describe('jobTree', () => {
+  const run = (id: number, parent_id: number | null = null) => ({ ...(jobs.items[0] as JobOut), id, parent_id })
+
+  it('orders each run before the runs it queued, oldest first', () => {
+    const rows = jobTree([run(1), run(2, 1), run(3, 2), run(4, 1), run(5, 3)], 1)
+    expect(rows.map((r) => [r.job.id, r.depth])).toEqual([
+      [1, 0],
+      [2, 1],
+      [3, 2],
+      [5, 3],
+      [4, 1],
+    ])
+  })
+
+  it('hangs runs whose parent was cut off on the root', () => {
+    expect(jobTree([run(1), run(9, 7)], 1).map((r) => [r.job.id, r.depth])).toEqual([
+      [1, 0],
+      [9, 1],
+    ])
+  })
+
+  it('handles a lone run and runs without parent_id (older servers)', () => {
+    expect(jobTree([run(4)], 4)).toHaveLength(1)
+    const { parent_id: _, ...old } = run(6)
+    expect(jobTree([old as JobOut], 6).map((r) => r.depth)).toEqual([0])
   })
 })

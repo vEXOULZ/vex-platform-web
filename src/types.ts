@@ -44,6 +44,8 @@ export interface JobOut {
   /** A cancel was asked for and the running step hasn't stopped yet (cooperative kinds). */
   cancel_requested: boolean
   actor: Actor
+  /** The run that queued this one, when a run did (vex-platform 0.6+; absent before). */
+  parent_id?: number | null
   created_at: string
   updated_at: string
   started_at: string | null
@@ -82,8 +84,20 @@ export interface JobQuery {
   state?: JobState[]
   kind?: string
   subject?: string
+  /** Only the runs this run queued (vex-platform 0.6+). */
+  parent?: number
   cursor?: string | null
   limit?: number
+}
+
+/** `GET /jobs/{id}/related` (vex-platform 0.6): the tree a run is in. */
+export interface RelatedOut {
+  /** The furthest run up the parent links. */
+  root_id: number
+  /** The root and every run under it, oldest first; `parent_id` links them. */
+  items: JobOut[]
+  /** The tree had more runs than the limit. */
+  truncated: boolean
 }
 
 export interface JobCountsQuery {

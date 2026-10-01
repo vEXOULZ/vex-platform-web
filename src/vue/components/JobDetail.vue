@@ -10,6 +10,8 @@ import { useEventTail } from '../useEventTail'
 import { useJobActions } from '../useJobActions'
 import { usePoll } from '../usePoll'
 import JobEventLog from './JobEventLog.vue'
+import PlatformLink from './PlatformLink.vue'
+import RelatedJobs from './RelatedJobs.vue'
 import StateChip from './StateChip.vue'
 import SubjectLink from './SubjectLink.vue'
 
@@ -20,8 +22,10 @@ const props = withDefaults(
     /** The kinds, for the run's description, cancel mode and default pause gates; loaded when not given. */
     kinds?: JobKindOut[] | null
     poll?: number
+    /** Show the runs around this one (its tree, other runs on its subject). */
+    related?: boolean
   }>(),
-  { kinds: null, poll: 3000 },
+  { kinds: null, poll: 3000, related: true },
 )
 const emit = defineEmits<{ loaded: [job: JobOut] }>()
 const ui = usePlatformUi()
@@ -147,11 +151,12 @@ defineExpose({ refresh })
           <div><dt>Kind</dt><dd class="vxp-mono" :title="kindInfo?.description">{{ job.kind }}</dd></div>
           <div><dt>Subject</dt><dd><SubjectLink :subject="job.subject" /><slot name="subject" :job="job" /></dd></div>
           <div><dt>Attempts</dt><dd class="vxp-mono">{{ job.attempts }}<template v-if="kindInfo?.max_attempts"> / {{ kindInfo.max_attempts }}</template></dd></div>
-          <div><dt>Started by</dt><dd :title="`${job.actor.kind}${job.actor.id ? `:${job.actor.id}` : ''} via ${job.actor.via}`">{{ job.actor.login ? `@${job.actor.login}` : job.actor.kind === 'system' ? ui.appName : job.actor.kind }}</dd></div>
+          <div v-if="!job.parent_id"><dt>Started by</dt><dd :title="`${job.actor.kind}${job.actor.id ? `:${job.actor.id}` : ''} via ${job.actor.via}`">{{ job.actor.login ? `@${job.actor.login}` : job.actor.kind === 'system' ? ui.appName : job.actor.kind }}</dd></div>
           <div><dt>Created</dt><dd :title="ui.stamp(job.created_at)">{{ ui.timeAgo(job.created_at) }}</dd></div>
           <div v-if="job.started_at"><dt>Started</dt><dd :title="ui.stamp(job.started_at)">{{ ui.timeAgo(job.started_at) }}</dd></div>
           <div v-if="job.finished_at"><dt>Finished</dt><dd :title="ui.stamp(job.finished_at)">{{ ui.timeAgo(job.finished_at) }}</dd></div>
           <div v-if="took !== null"><dt>{{ job.finished_at ? 'Took' : 'Running for' }}</dt><dd class="vxp-mono">{{ duration(took) }}</dd></div>
+          <div v-if="job.parent_id"><dt>Queued by</dt><dd class="vxp-mono"><PlatformLink :to="ui.jobHref(job.parent_id)">job #{{ job.parent_id }}</PlatformLink></dd></div>
           <div v-if="job.not_before && job.state === 'queued'"><dt>Next try</dt><dd :title="ui.stamp(job.not_before)">{{ ui.timeAgo(job.not_before) }}</dd></div>
         </dl>
         <p v-if="kindInfo?.description" class="desc vxp-muted">{{ kindInfo.description }}</p>
@@ -216,6 +221,8 @@ defineExpose({ refresh })
           />
         </section>
       </div>
+
+      <RelatedJobs v-if="related" :client="client" :job="job" :poll="poll" />
     </template>
 
     <dialog ref="dialog" class="vxp-dialog" aria-labelledby="vxp-cancel-title">

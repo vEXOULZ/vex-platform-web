@@ -36,6 +36,18 @@ describe('PlatformClient', () => {
     expect(fetch.mock.calls[0]![0]).toBe('/api/v2/jobs/counts?kind=archive&since=2026-10-01T00%3A00%3A00Z')
   })
 
+  it('reads a run tree and lists a run\'s children', async () => {
+    const tree = { root_id: 811, items: [{ ...jobs.items[1], parent_id: null }, { ...jobs.items[0], parent_id: 811 }], truncated: false }
+    const { api, fetch } = client((url) => json(url.includes('/related') ? tree : jobs))
+    const r = await api.related(812, 50)
+    expect(fetch.mock.calls[0]![0]).toBe('/api/v2/jobs/812/related?limit=50')
+    expect([r.root_id, r.items.map((j) => j.parent_id), r.truncated]).toEqual([811, [null, 811], false])
+    await api.related(812)
+    expect(fetch.mock.calls[1]![0]).toBe('/api/v2/jobs/812/related')
+    await api.jobs({ parent: 811 })
+    expect(fetch.mock.calls[2]![0]).toBe('/api/v2/jobs?parent=811')
+  })
+
   it('reads events, kinds and audit', async () => {
     const { api, fetch } = client((url) => json(url.includes('/events') ? events : url.endsWith('/job-kinds') ? kinds : audit))
     expect((await api.events(812, 'c1', 100)).items).toHaveLength(5)
