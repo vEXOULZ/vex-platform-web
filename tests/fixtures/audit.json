@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "id": 90, "at": "2026-09-30T18:00:00Z", "actor_kind": "user", "actor_id": "41234567", "actor_login": "vexoulz",
+      "via": "session", "action": "job.enqueue", "target": "job:812", "scope": null, "scope_name": null, "outcome": "ok",
+      "before": null, "after": { "kind": "upload" }, "detail": null, "request_id": "req-1", "job_run_id": 812
+    },
+    {
+      "id": 89, "at": "2026-09-30T17:30:00Z", "actor_kind": "api_key", "actor_id": "k7", "actor_login": null,
+      "via": "api_key", "action": "cc.edit", "target": "command:hello", "scope": "41234567", "scope_name": "vexoulz",
+      "outcome": "denied", "before": "hi", "after": "hello", "detail": null, "request_id": "req-2", "job_run_id": null
+    },
+    {
+      "id": 88, "at": "2026-09-30T17:00:00Z", "actor_kind": "system", "actor_id": null, "actor_login": null,
+      "via": "job", "action": "vod.update", "target": "vod:2551234567", "scope": null, "outcome": "ok",
+      "before": null, "after": null, "detail": { "reason": "title changed" }, "request_id": null, "job_run_id": 800
+    }
+  ],
+  "next_cursor": null
+}

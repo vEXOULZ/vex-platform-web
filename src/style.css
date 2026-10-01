@@ -1,0 +1,126 @@
+/*
+ * @vexoulz/platform-web: the variables every component reads, with neutral defaults, and the few control classes
+ * they share. A site restyles everything by setting the --vxp-* variables (on :root, or on any element around the
+ * components); nothing else needs overriding.
+ */
+:root {
+  --vxp-bg: #ffffff;
+  --vxp-surface: #f6f6f8;
+  --vxp-ink: #1b1b1f;
+  --vxp-muted: #6b6b75;
+  --vxp-line: #dcdce2;
+  --vxp-hover: rgb(0 0 0 / 0.05);
+  --vxp-accent: #3b5bdb;
+  --vxp-on-accent: #ffffff;
+  --vxp-ok: #2f9e44;
+  --vxp-warn: #b7791f;
+  --vxp-bad: #e03131;
+  --vxp-ring: var(--vxp-accent);
+  --vxp-radius: 8px;
+  --vxp-radius-sm: 5px;
+  --vxp-ctl: 32px;
+  --vxp-ctl-sm: 26px;
+  --vxp-font: system-ui, sans-serif;
+  --vxp-mono: ui-monospace, Consolas, monospace;
+  /* Chat lines sit on this; name colours are made readable against black, so keep it dark. */
+  --vxp-chat-bg: #0b0b0d;
+  --vxp-chat-ink: #efeff1;
+  --vxp-chat-muted: #8b8b93;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vxp-bg: #0c0c0f;
+    --vxp-surface: #141418;
+    --vxp-ink: #ededf0;
+    --vxp-muted: #8b8b93;
+    --vxp-line: #2a2a31;
+    --vxp-hover: rgb(255 255 255 / 0.06);
+    --vxp-accent: #8ea2ff;
+    --vxp-on-accent: #0c0c0f;
+    --vxp-ok: #8fd694;
+    --vxp-warn: #e8c35a;
+    --vxp-bad: #ff6b5e;
+  }
+}
+
+.vxp { font-family: var(--vxp-font); color: var(--vxp-ink); }
+.vxp-mono { font-family: var(--vxp-mono); }
+.vxp-muted { color: var(--vxp-muted); }
+.vxp-small { font-size: 12px; }
+.vxp-eyebrow { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--vxp-muted); }
+.vxp-panel { background: var(--vxp-surface); border: 1px solid var(--vxp-line); border-radius: var(--vxp-radius); }
+.vxp a, a.vxp-link { color: inherit; text-decoration: underline; text-decoration-color: var(--vxp-line); text-underline-offset: 2px; }
+.vxp a:hover, a.vxp-link:hover { text-decoration-color: currentColor; }
+
+.vxp-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: var(--vxp-ctl); padding: 0 12px;
+  font: inherit; font-size: 13px; color: var(--vxp-ink); background: var(--vxp-surface); border: 1px solid var(--vxp-line);
+  border-radius: var(--vxp-radius-sm); cursor: pointer; white-space: nowrap;
+}
+.vxp-btn:hover:not(:disabled) { background: var(--vxp-hover); }
+.vxp-btn:focus-visible, .vxp-input:focus-visible, .vxp-tab:focus-visible { outline: 2px solid var(--vxp-ring); outline-offset: 1px; }
+.vxp-btn:disabled { opacity: 0.5; cursor: default; }
+.vxp-btn[aria-busy='true'] { cursor: progress; opacity: 0.7; }
+.vxp-btn.sm { height: var(--vxp-ctl-sm); padding: 0 8px; font-size: 12px; }
+.vxp-btn.primary { background: var(--vxp-accent); border-color: var(--vxp-accent); color: var(--vxp-on-accent); }
+.vxp-btn.primary:hover:not(:disabled) { background: color-mix(in srgb, var(--vxp-accent) 85%, var(--vxp-ink)); }
+.vxp-btn.danger { color: var(--vxp-bad); border-color: color-mix(in srgb, var(--vxp-bad) 50%, var(--vxp-line)); }
+.vxp-btn.danger-solid { background: var(--vxp-bad); border-color: var(--vxp-bad); color: #fff; }
+
+.vxp-input {
+  height: var(--vxp-ctl); padding: 0 10px; min-width: 0; font: inherit; font-size: 13px; color: var(--vxp-ink);
+  background: var(--vxp-bg); border: 1px solid var(--vxp-line); border-radius: var(--vxp-radius-sm);
+}
+select.vxp-input { padding-right: 4px; }
+.vxp-field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--vxp-muted); }
+.vxp-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+.vxp-check input { accent-color: var(--vxp-accent); margin: 0; }
+
+.vxp-chip {
+  display: inline-flex; align-items: center; height: 20px; padding: 0 7px; font-size: 11.5px; line-height: 1; white-space: nowrap;
+  border-radius: 999px; border: 1px solid var(--vxp-line); color: var(--vxp-ink);
+}
+.vxp-chip.accent { color: var(--vxp-accent); border-color: color-mix(in srgb, var(--vxp-accent) 45%, transparent); }
+.vxp-chip.ok { color: var(--vxp-ok); border-color: color-mix(in srgb, var(--vxp-ok) 45%, transparent); }
+.vxp-chip.warn { color: var(--vxp-warn); border-color: color-mix(in srgb, var(--vxp-warn) 45%, transparent); }
+.vxp-chip.bad { color: var(--vxp-bad); border-color: color-mix(in srgb, var(--vxp-bad) 45%, transparent); }
+
+.vxp-tabs { display: flex; gap: 2px; max-width: 100%; overflow-x: auto; border-bottom: 1px solid var(--vxp-line); }
+.vxp-tab {
+  padding: 6px 10px; font: inherit; font-size: 13px; color: var(--vxp-muted); background: none; border: 0;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; white-space: nowrap;
+}
+.vxp-tab[aria-selected='true'] { color: var(--vxp-ink); border-bottom-color: var(--vxp-accent); }
+
+.vxp-callout { padding: 10px 12px; border-radius: var(--vxp-radius-sm); border: 1px solid var(--vxp-line); border-left-width: 3px; font-size: 13px; }
+.vxp-callout.error { border-left-color: var(--vxp-bad); }
+.vxp-callout.warn { border-left-color: var(--vxp-warn); }
+.vxp-callout > strong { display: block; margin-bottom: 4px; }
+
+.vxp-table-scroll { max-width: 100%; overflow-x: auto; }
+.vxp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.vxp-table th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--vxp-muted); padding: 8px 10px; border-bottom: 1px solid var(--vxp-line); white-space: nowrap; }
+.vxp-table td { padding: 8px 10px; border-bottom: 1px solid var(--vxp-line); vertical-align: top; }
+.vxp-table tr:last-child td { border-bottom: 0; }
+.vxp-table tbody tr:hover td { background: var(--vxp-hover); }
+
+.vxp-skeleton { height: 36px; border-radius: var(--vxp-radius-sm); background: var(--vxp-hover); animation: vxp-pulse 1.4s ease-in-out infinite; }
+@keyframes vxp-pulse { 50% { opacity: 0.5; } }
+
+.vxp-progress { width: 100%; height: 6px; border-radius: 3px; background: var(--vxp-hover); overflow: hidden; }
+.vxp-progress > span { display: block; height: 100%; background: var(--vxp-accent); transition: width 0.3s; }
+.vxp-progress.indeterminate > span { width: 30%; animation: vxp-slide 1.2s ease-in-out infinite; }
+@keyframes vxp-slide { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
+
+dialog.vxp-dialog {
+  max-width: min(440px, calc(100vw - 32px)); padding: 18px; color: var(--vxp-ink); background: var(--vxp-surface);
+  border: 1px solid var(--vxp-line); border-radius: var(--vxp-radius); font-family: var(--vxp-font); font-size: 14px;
+}
+dialog.vxp-dialog::backdrop { background: rgb(0 0 0 / 0.5); }
+dialog.vxp-dialog h2 { margin: 0 0 10px; font-size: 16px; }
+dialog.vxp-dialog .actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vxp-skeleton, .vxp-progress.indeterminate > span { animation: none; }
+}

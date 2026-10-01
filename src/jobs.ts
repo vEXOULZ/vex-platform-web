@@ -1,0 +1,113 @@
+// What a site needs to show a job run: which actions apply, where it is in its steps, its progress.
+import type { EventOut, JobOut, JobState, Progress } from './types'
+
+export type Tone = 'default' | 'accent' | 'ok' | 'warn' | 'bad'
+
+export const STATE_TONE: Record<JobState, Tone> = {
+  queued: 'default',
+  running: 'accent',
+  paused: 'warn',
+  succeeded: 'ok',
+  failed: 'bad',
+  cancelled: 'default',
+}
+
+export const isActive = (state: JobState): boolean => state === 'queued' || state === 'running' || state === 'paused'
+
+/** The actions vex-platform accepts for a run in its state (anything else is a 409 `job_conflict`). */
+export function jobActions(job: Pick<JobOut, 'state' | 'cancel_requested'>) {
+  return {
+    pause: job.state === 'queued' || job.state === 'running',
+    resume: job.state === 'paused',
+    retry: job.state === 'failed' || job.state === 'cancelled',
+    // A cancel already asked for is waiting on a cooperative step; asking again changes nothing.
+    cancel: isActive(job.state) && !job.cancel_requested,
+    /** Pause gates and pause-next can be changed while the run is active. */
+    edit: isActive(job.state),
+  }
+}
+
+/** Where a run is in its steps: 0-based index of the current step, and the total. */
+export function stepPosition(job: Pick<JobOut, 'state' | 'step' | 'steps'>): { index: number; total: number } {
+  const total = job.steps.length
+  if (job.state === 'succeeded') return { index: total, total }
+  const i = job.step ? job.steps.indexOf(job.step) : -1
+  return { index: i < 0 ? 0 : i, total }
+}
+
+export type StepStatus = 'done' | 'todo' | JobState
+
+/**
+ * The state of each step, for a step list. `pauseBefore` is the run's own gates, or `kindPauseBefore` (its kind's)
+ * when the run has none of its own.
+ */
+export function stepStates(job: Pick<JobOut, 'state' | 'step' | 'steps' | 'pause_before'>, kindPauseBefore: readonly string[] = []) {
+  const { index } = stepPosition(job)
+  const gates = job.pause_before ?? kindPauseBefore
+  return job.steps.map((name, i) => ({
+    name,
+    status: (i < index ? 'done' : i > index ? 'todo' : job.state === 'succeeded' ? 'done' : job.state) as StepStatus,
+    pauseBefore: gates.includes(name),
+  }))
+}
+
+/** Progress as 0..1, or null when it has no total. */
+export function progressRatio(p: Progress | null | undefined): number | null {
+  if (!p) return null
+  if (p.unit === 'percent') return Math.min(1, Math.max(0, p.done / 100))
+  return p.total ? Math.min(1, Math.max(0, p.done / p.total)) : null
+}
+
+/** Bytes → "18.4 GB" (binary units, as `du -h` counts them). */
+export function bytes(n: number | null | undefined): string {
+  if (n == null || !Number.isFinite(n)) return '—'
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let v = n
+  let i = 0
+  while (v >= 1024 && i < units.length - 1) {
+    v /= 1024
+    i++
+  }
+  return `${i && v < 10 ? v.toFixed(1) : Math.round(v)} ${units[i]}`
+}
+
+/** "42%", "1.2 GB / 3.4 GB", "3/12 parts". */
+export function progressText(p: Progress): string {
+  if (p.unit === 'percent') return `${Math.round(p.done)}%`
+  if (p.unit === 'bytes') return p.total ? `${bytes(p.done)} / ${bytes(p.total)}` : bytes(p.done)
+  if (p.unit === 'seconds') return p.total ? `${duration(p.done)} / ${duration(p.total)}` : duration(p.done)
+  return p.total ? `${p.done}/${p.total} ${p.unit}` : `${p.done} ${p.unit}`
+}
+
+/** Seconds → "1h 02m", "3m 05s", "12s". */
+export function duration(s: number | null | undefined): string {
+  if (s == null || !Number.isFinite(s)) return '—'
+  const t = Math.max(0, Math.round(s))
+  const h = Math.floor(t / 3600)
+  const m = Math.floor((t % 3600) / 60)
+  const sec = t % 60
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return h ? `${h}h ${pad(m)}m` : m ? `${m}m ${pad(sec)}s` : `${sec}s`
+}
+
+/** How long a run has taken: started → finished, or → now while it's going. Null before it started. */
+export function runTime(job: Pick<JobOut, 'started_at' | 'finished_at'>, now = Date.now()): number | null {
+  if (!job.started_at) return null
+  const end = job.finished_at ? Date.parse(job.finished_at) : now
+  return (end - Date.parse(job.started_at)) / 1000
+}
+
+/**
+ * Log lines to show: progress reports only as the newest one of each unbroken run of them in a step (uploads report
+ * every percent).
+ */
+export function logLines(events: readonly EventOut[]): EventOut[] {
+  return events.filter((e, i, all) => !e.progress || !all[i + 1]?.progress || all[i + 1]!.step !== e.step)
+}
+
+/** `vod:123` → `{type: 'vod', id: '123'}`; null when it isn't `type:id`. */
+export function subjectOf(subject: string | null | undefined): { type: string; id: string } | null {
+  const i = subject ? subject.indexOf(':') : -1
+  if (!subject || i <= 0 || i === subject.length - 1) return null
+  return { type: subject.slice(0, i), id: subject.slice(i + 1) }
+}

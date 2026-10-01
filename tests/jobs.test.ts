@@ -1,0 +1,138 @@
+import { describe, expect, it } from 'vitest'
+import {
+  actorLabel,
+  auditChange,
+  auditFilterQuery,
+  bytes,
+  duration,
+  jobActions,
+  logLines,
+  progressRatio,
+  progressText,
+  runTime,
+  stepPosition,
+  stepStates,
+  subjectOf,
+  timeAgo,
+  type AuditOut,
+  type EventOut,
+  type JobOut,
+  type JobState,
+} from '../src'
+import { mergePages } from '../src/vue/useCursorPages'
+import audit from './fixtures/audit.json'
+import events from './fixtures/events.json'
+import jobs from './fixtures/jobs.json'
+
+const running = jobs.items[0] as JobOut
+const failed = jobs.items[1] as JobOut
+const as = (state: JobState, extra: Partial<JobOut> = {}): JobOut => ({ ...running, state, ...extra })
+
+describe('jobActions', () => {
+  it('allows what vex-platform allows in each state', () => {
+    const table = (['queued', 'running', 'paused', 'succeeded', 'failed', 'cancelled'] as const).map((s) => {
+      const a = jobActions(as(s))
+      return [s, a.pause, a.resume, a.retry, a.cancel, a.edit]
+    })
+    expect(table).toEqual([
+      ['queued', true, false, false, true, true],
+      ['running', true, false, false, true, true],
+      ['paused', false, true, false, true, true],
+      ['succeeded', false, false, false, false, false],
+      ['failed', false, false, true, false, false],
+      ['cancelled', false, false, true, false, false],
+    ])
+  })
+
+  it("doesn't offer a cancel already asked for", () => {
+    expect(jobActions(as('running', { cancel_requested: true })).cancel).toBe(false)
+  })
+})
+
+describe('steps', () => {
+  it('places a run in its steps', () => {
+    expect(stepPosition(running)).toEqual({ index: 2, total: 4 })
+    expect(stepPosition(as('succeeded', { step: null }))).toEqual({ index: 4, total: 4 })
+    expect(stepPosition(as('queued', { step: null }))).toEqual({ index: 0, total: 4 })
+  })
+
+  it("marks each step, with the run's own pause gates or else its kind's", () => {
+    expect(stepStates(running, ['publish']).map((s) => [s.name, s.status, s.pauseBefore])).toEqual([
+      ['download', 'done', false],
+      ['transcode', 'done', false],
+      ['upload', 'running', false],
+      ['publish', 'todo', true],
+    ])
+    expect(stepStates(failed, ['fetch']).map((s) => [s.status, s.pauseBefore])).toEqual([
+      ['failed', false],
+      ['todo', true],
+    ])
+  })
+})
+
+describe('progress and times', () => {
+  it('reads progress as a ratio and as text', () => {
+    expect(progressRatio({ done: 40, total: 100, unit: 'percent' })).toBe(0.4)
+    expect(progressRatio({ done: 3, total: null, unit: 'items' })).toBeNull()
+    expect(progressText({ done: 1288490188, total: 4294967296, unit: 'bytes' })).toBe('1.2 GB / 4.0 GB')
+    expect(progressText({ done: 3, total: 12, unit: 'parts' })).toBe('3/12 parts')
+    expect(progressText({ done: 62, total: null, unit: 'seconds' })).toBe('1m 02s')
+    expect(bytes(512)).toBe('512 B')
+  })
+
+  it('formats durations and run times', () => {
+    expect([duration(12), duration(185), duration(3720), duration(null)]).toEqual(['12s', '3m 05s', '1h 02m', '—'])
+    expect(runTime(failed)).toBe(299)
+    expect(runTime(as('queued', { started_at: null }))).toBeNull()
+    expect(runTime(running, Date.parse('2026-09-30T18:00:12Z'))).toBe(10)
+  })
+
+  it('says how long ago', () => {
+    const now = Date.parse('2026-09-30T18:00:00Z')
+    expect(timeAgo('2026-09-30T17:59:50Z', now)).toBe('just now')
+    expect(timeAgo('2026-09-30T17:00:00Z', now)).toMatch(/hour/)
+    expect(timeAgo(null, now)).toBe('—')
+  })
+
+  it('keeps only the newest of each run of progress reports', () => {
+    expect(logLines(events.items as EventOut[]).map((e) => e.id)).toEqual([1, 3, 4, 5])
+  })
+})
+
+describe('subjects and audit', () => {
+  it('splits subjects', () => {
+    expect(subjectOf('vod:2551234567')).toEqual({ type: 'vod', id: '2551234567' })
+    expect(subjectOf('channel:a:b')).toEqual({ type: 'channel', id: 'a:b' })
+    expect([subjectOf('vod'), subjectOf(':1'), subjectOf('vod:'), subjectOf(null)]).toEqual([null, null, null, null])
+  })
+
+  it('names actors', () => {
+    const [user, key, system] = audit.items as AuditOut[]
+    expect([actorLabel(user!), actorLabel(key!), actorLabel(system!, 'archive')]).toEqual(['@vexoulz', 'key k7', 'archive'])
+  })
+
+  it('shows what changed', () => {
+    const [user, key, system] = audit.items as AuditOut[]
+    expect(auditChange(user!)).toEqual({ before: '', after: '{"kind":"upload"}', detail: '' })
+    expect(auditChange(key!)).toEqual({ before: 'hi', after: 'hello', detail: '' })
+    expect(auditChange(system!).detail).toBe('{"reason":"title changed"}')
+    expect(auditChange({ before: {}, after: null, detail: null }).before).toBe('')
+  })
+
+  it('turns the filter form into a query', () => {
+    expect(auditFilterQuery({ action: ' job. ', actor: '@Someone', target: '', outcome: 'denied' })).toEqual({
+      action: 'job.',
+      actor: 'Someone',
+      outcome: 'denied',
+    })
+  })
+})
+
+describe('mergePages', () => {
+  it('appends older rows the polled first page no longer has', () => {
+    const first = [{ id: 5 }, { id: 4 }, { id: 3 }]
+    // Two rows arrived since the older page was read: it starts with rows the first page now has too.
+    const older = [{ id: 3 }, { id: 2 }, { id: 1 }]
+    expect(mergePages(first, older, (r) => r.id).map((r) => r.id)).toEqual([5, 4, 3, 2, 1])
+  })
+})
