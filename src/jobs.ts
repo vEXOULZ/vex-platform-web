@@ -111,3 +111,35 @@ export function subjectOf(subject: string | null | undefined): { type: string; i
   if (!subject || i <= 0 || i === subject.length - 1) return null
   return { type: subject.slice(0, i), id: subject.slice(i + 1) }
 }
+
+export interface TreeRow {
+  job: JobOut
+  /** 0 for the root, 1 for the runs it queued, and so on. */
+  depth: number
+}
+
+/**
+ * A run tree (`GET /jobs/{id}/related`) as rows in reading order: each run, then the runs it queued, oldest first.
+ * Runs whose parent isn't in the list (cut off by the limit) hang off the root.
+ */
+export function jobTree(items: readonly JobOut[], rootId: number): TreeRow[] {
+  const ids = new Set(items.map((j) => j.id))
+  const children = new Map<number, JobOut[]>()
+  for (const j of [...items].sort((a, b) => a.id - b.id)) {
+    if (j.id === rootId) continue
+    const parent = j.parent_id != null && ids.has(j.parent_id) ? j.parent_id : rootId
+    children.set(parent, [...(children.get(parent) ?? []), j])
+  }
+  const rows: TreeRow[] = []
+  const seen = new Set<number>()
+  const walk = (job: JobOut, depth: number) => {
+    if (seen.has(job.id)) return
+    seen.add(job.id)
+    rows.push({ job, depth })
+    for (const c of children.get(job.id) ?? []) walk(c, depth + 1)
+  }
+  const root = items.find((j) => j.id === rootId)
+  if (root) walk(root, 0)
+  else for (const c of children.get(rootId) ?? []) walk(c, 0)
+  return rows
+}
