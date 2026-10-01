@@ -87,7 +87,14 @@ export interface LogGap {
   start: string
   end: string
   reason: 'before_log' | 'between_sessions' | 'not_listening'
-  backfill: { complete: boolean; inserted: number | null; error: string | null; provider: string | null } | null
+  backfill: {
+    complete: boolean
+    inserted: number | null
+    error: string | null
+    provider: string | null
+    /** The job run that filled it, when it was a job (bots from before 0.8 leave it out). */
+    job_id?: number | null
+  } | null
 }
 
 export interface LogCoverage {
