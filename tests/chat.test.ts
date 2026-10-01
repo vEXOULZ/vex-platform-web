@@ -24,6 +24,12 @@ describe('messages', () => {
     expect(tokens[0]!.kind === 'emote' && tokens[0]!.image.src).toBe('https://static-cdn.jtvnw.net/emoticons/v2/25/default/dark/1.0')
   })
 
+  it("takes a replay emote's id without its offsets", () => {
+    const ids = (f: Parameters<typeof tokenize>[0]) => tokenize(f).flatMap((t) => (t.kind === 'emote' ? [t.emote.id] : []))
+    expect(ids([{ text: 'vexoulHELP', emote: { emoteID: 'emotesv2_1a6', id: 'emotesv2_1a6;5;14' } }])).toEqual(['emotesv2_1a6'])
+    expect(ids([{ text: ':)', emote: { id: '555555628;36;37' } }])).toEqual(['555555628'])
+  })
+
   describe('zero-width emotes and modifiers', () => {
     const set = new EmoteSet()
       .add('7tv', [

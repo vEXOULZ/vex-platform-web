@@ -34,7 +34,7 @@ export interface RawBadges {
 
 /**
  * A piece of a message. Native Twitch emotes come as `emote.emoteID` (replay), `emoticon.emoticon_id` (older replay),
- * `emote_id` or `emote.id` (EventSub, doomtp-bot).
+ * `emote_id` or `emote.id` (EventSub, doomtp-bot). A replay's `emote.id` is `<id>;<start>;<end>`.
  */
 export interface RawFragment {
   text: string
