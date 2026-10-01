@@ -97,9 +97,11 @@ export function chatName(user: string, login: string | null, mode: NameMode = 'd
 /** Fragments as words, the gaps between them (original whitespace kept) and emotes. */
 function* parts(fragments: readonly RawFragment[], emotes?: EmoteSet | null): Generator<Part> {
   for (const f of fragments) {
-    const nativeId = f.emote_id ?? f.emote?.id ?? f.emote?.emoteID ?? f.emoticon?.emoticon_id
+    // Replay fragments carry both emote.emoteID and emote.id, which is `<id>;<start>;<end>`: the clean one first, and
+    // never the offsets.
+    const nativeId = f.emote_id ?? f.emote?.emoteID ?? f.emote?.id ?? f.emoticon?.emoticon_id
     if (nativeId) {
-      yield { kind: 'emote', emote: { provider: 'twitch', id: String(nativeId), code: f.text.trim() } }
+      yield { kind: 'emote', emote: { provider: 'twitch', id: String(nativeId).split(';')[0]!, code: f.text.trim() } }
       continue
     }
     for (const text of f.text.split(/(\s+)/)) {

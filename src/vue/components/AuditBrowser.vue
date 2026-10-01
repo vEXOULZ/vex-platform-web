@@ -14,6 +14,8 @@ const props = withDefaults(
     /** Only this scope's rows (a channel id); also hides the Where column. */
     scope?: string | null
     scopeNames?: Record<string, string>
+    /** Leave out the Where column: an app without scopes. */
+    hideScope?: boolean
     pageSize?: number
     /** Poll the first page this often (ms); 0: only on Refresh. */
     poll?: number
@@ -21,7 +23,7 @@ const props = withDefaults(
     actionHint?: string
     targetHint?: string
   }>(),
-  { scope: null, scopeNames: () => ({}), pageSize: 50, poll: 0, actionHint: 'job. or job.cancel', targetHint: 'job: or job:12' },
+  { scope: null, scopeNames: () => ({}), hideScope: false, pageSize: 50, poll: 0, actionHint: 'job. or job.cancel', targetHint: 'job: or job:12' },
 )
 const filters = defineModel<AuditFilters>('filters', {
   default: () => ({ action: '', target: '', actor: '', actor_kind: '', outcome: '', scope: '' }),
@@ -82,7 +84,7 @@ defineExpose({ refresh: pages.refresh })
       <div v-for="i in 8" :key="i" class="vxp-skeleton" />
     </div>
     <template v-else-if="pages.loaded.value">
-      <AuditTable :entries="pages.items.value" :scope-names="scopeNames" :hide-scope="!!scope" empty="No audit rows match these filters.">
+      <AuditTable :entries="pages.items.value" :scope-names="scopeNames" :hide-scope="hideScope || !!scope" empty="No audit rows match these filters.">
         <template v-if="$slots.actor" #actor="s"><slot name="actor" v-bind="s" /></template>
         <template v-if="$slots.scope" #scope="s"><slot name="scope" v-bind="s" /></template>
       </AuditTable>

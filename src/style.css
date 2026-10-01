@@ -86,10 +86,12 @@ select.vxp-input { padding-right: 4px; }
 .vxp-chip.warn { color: var(--vxp-warn); border-color: color-mix(in srgb, var(--vxp-warn) 45%, transparent); }
 .vxp-chip.bad { color: var(--vxp-bad); border-color: color-mix(in srgb, var(--vxp-bad) 45%, transparent); }
 
-.vxp-tabs { display: flex; gap: 2px; max-width: 100%; overflow-x: auto; border-bottom: 1px solid var(--vxp-line); }
+/* The line is a shadow, not a border, so the selected tab's underline covers it without overflowing the row (which
+   would show a scrollbar). */
+.vxp-tabs { display: flex; gap: 2px; max-width: 100%; overflow: auto hidden; box-shadow: inset 0 -1px var(--vxp-line); }
 .vxp-tab {
   padding: 6px 10px; font: inherit; font-size: 13px; color: var(--vxp-muted); background: none; border: 0;
-  border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; white-space: nowrap;
+  border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap;
 }
 .vxp-tab[aria-selected='true'] { color: var(--vxp-ink); border-bottom-color: var(--vxp-accent); }
 
