@@ -1,5 +1,11 @@
 # @vexoulz/platform-web
 
+## 0.2.1
+
+### Patch Changes
+
+- d2e70f0: `LogGap.backfill.job_id`: the job run that filled a coverage gap, as doomtp-bot now reports it.
+
 ## 0.2.0
 
 ### Minor Changes
