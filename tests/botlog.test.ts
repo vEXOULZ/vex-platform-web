@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { EmoteSet, loadChannelEmotes, toChatLine, type LogMessage, type LogModeration, type LogNotification, type Token } from '../src/chat'
+import { EmoteSet, loadBadges, loadChannelEmotes, toChatLine, type LogMessage, type LogModeration, type LogNotification, type Token } from '../src/chat'
 
 const plain = (tokens: Token[]) => tokens.map((t) => (t.kind === 'text' ? t.text : `[${t.emote.code}]`)).join('')
 const user = { id: '1', login: 'someone', display_name: 'SomeOne' }
@@ -101,5 +101,15 @@ describe('loadChannelEmotes', () => {
       throw new DOMException('aborted', 'AbortError')
     })
     await expect(loadChannelEmotes('1', { fetch, signal: ctrl.signal })).rejects.toThrow()
+  })
+})
+
+describe('loadBadges', () => {
+  it("reads the backend's badges, and gives null when it fails", async () => {
+    const badges = { channel: [{ set_id: 'subscriber', versions: [{ id: '0', image_url_1x: 'a', image_url_2x: 'b', image_url_4x: 'c' }] }], global: [] }
+    const fetch = vi.fn(async (_url: string) => new Response(JSON.stringify(badges), { status: 200 }))
+    expect(await loadBadges('/api/v2/channels/doomtp/badges', { fetch })).toEqual(badges)
+    expect(fetch.mock.calls[0]![0]).toBe('/api/v2/channels/doomtp/badges')
+    expect(await loadBadges('/x', { fetch: vi.fn(async () => new Response('', { status: 503 })) })).toBeNull()
   })
 })
