@@ -86,6 +86,19 @@ export interface JobQuery {
   limit?: number
 }
 
+export interface JobCountsQuery {
+  kind?: string
+  subject?: string
+  /** Finished runs only from this time on (ISO 8601); active runs are always counted. */
+  since?: string | null
+}
+
+/** `GET /jobs/counts` (vex-platform 0.5): runs per state, every state present. */
+export interface JobCountsOut {
+  counts: Record<JobState, number>
+  total: number
+}
+
 export interface EnqueueIn {
   kind: string
   subject?: string | null

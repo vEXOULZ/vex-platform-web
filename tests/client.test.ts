@@ -29,6 +29,13 @@ describe('PlatformClient', () => {
     expect(page.next_cursor).toBe('eyJpZCI6ODExfQ')
   })
 
+  it('counts jobs per state, with the filters in the query', async () => {
+    const counts = { counts: { queued: 1, running: 0, paused: 0, succeeded: 3, failed: 1, cancelled: 0 }, total: 5 }
+    const { api, fetch } = client(() => json(counts))
+    expect(await api.jobCounts({ kind: 'archive', since: '2026-10-01T00:00:00Z' })).toEqual(counts)
+    expect(fetch.mock.calls[0]![0]).toBe('/api/v2/jobs/counts?kind=archive&since=2026-10-01T00%3A00%3A00Z')
+  })
+
   it('reads events, kinds and audit', async () => {
     const { api, fetch } = client((url) => json(url.includes('/events') ? events : url.endsWith('/job-kinds') ? kinds : audit))
     expect((await api.events(812, 'c1', 100)).items).toHaveLength(5)

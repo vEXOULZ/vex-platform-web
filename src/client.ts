@@ -1,7 +1,7 @@
 // Client for the routes every vex-platform app serves under /api/v2: job runs, their events and kinds, and the
 // audit log. Auth is the site's: a session cookie (writes carry its CSRF token) or a Bearer key.
 import { ProblemError } from './errors'
-import type { AuditOut, AuditQuery, EnqueueIn, EventOut, JobKindOut, JobOut, JobQuery, JobUpdate, Page } from './types'
+import type { AuditOut, AuditQuery, EnqueueIn, EventOut, JobCountsOut, JobCountsQuery, JobKindOut, JobOut, JobQuery, JobUpdate, Page } from './types'
 
 export type Fetch = (input: string, init?: RequestInit) => Promise<Response>
 
@@ -70,6 +70,10 @@ export class PlatformClient {
   /** Newest first. */
   jobs(q: JobQuery = {}, signal?: AbortSignal): Promise<Page<JobOut>> {
     return this.request('GET', `/jobs${query({ ...q })}`, undefined, signal)
+  }
+  /** Runs per state (vex-platform 0.5+). With `since`, finished runs from then on only. */
+  jobCounts(q: JobCountsQuery = {}, signal?: AbortSignal): Promise<JobCountsOut> {
+    return this.request('GET', `/jobs/counts${query({ ...q })}`, undefined, signal)
   }
   job(id: number, signal?: AbortSignal): Promise<JobOut> {
     return this.request('GET', `/jobs/${id}`, undefined, signal)

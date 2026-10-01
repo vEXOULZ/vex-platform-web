@@ -1,8 +1,8 @@
 // A channel's 7TV / BTTV / FFZ emotes straight from each provider's public API, for chat that isn't tied to a VOD
-// (vods-core's `loadEmotes` reads the sets the archive saved instead). Twitch badges need a Twitch token, so they
-// come from the site's backend, not from here.
+// (vods-core's `loadEmotes` reads the sets the archive saved instead). Twitch badges need a Twitch token, so
+// `loadBadges` reads them from the site's backend.
 import { EmoteSet, SEVENTV_GLOBAL } from './emotes'
-import type { RawThirdPartyEmote } from './types'
+import type { RawBadges, RawThirdPartyEmote } from './types'
 
 export type Fetch = (input: string, init?: RequestInit) => Promise<Response>
 
@@ -61,4 +61,22 @@ export async function loadChannelEmotes(twitchId: string, opts: LoadChannelEmote
     .add('7tv', stvGlobal?.emotes)
     .add('ffz', ffzEmotes(ffzGlobal, ffzGlobal?.default_sets))
     .add('bttv', Array.isArray(bttvGlobal) ? bttvGlobal : null)
+}
+
+/**
+ * A channel's Twitch badges from a backend that passes Helix's through as `{channel, global}` (doomtp-bot's
+ * `/api/v2/channels/{login}/badges`). Null when it fails: chat then shows no badge images.
+ */
+export async function loadBadges(
+  url: string,
+  opts: Pick<LoadChannelEmotesOptions, 'fetch' | 'signal'> & { credentials?: RequestCredentials } = {},
+): Promise<RawBadges | null> {
+  const fetcher = opts.fetch ?? ((input: string, init?: RequestInit) => globalThis.fetch(input, init))
+  try {
+    const res = await fetcher(url, { signal: opts.signal, credentials: opts.credentials ?? 'same-origin', headers: { accept: 'application/json' } })
+    return res.ok ? ((await res.json()) as RawBadges) : null
+  } catch (e) {
+    if ((e as Error).name === 'AbortError') throw e
+    return null
+  }
 }
