@@ -10,7 +10,7 @@ export interface RawThirdPartyEmote {
   code?: string
   /** 7TV v2 / v3 flags (bit 0, or bit 8 of `data.flags`: zero-width). */
   flags?: number
-  data?: { flags?: number }
+  data?: { flags?: number } | null
 }
 
 export interface RawBadgeVersion {
