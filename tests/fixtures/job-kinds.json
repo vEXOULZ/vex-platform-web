@@ -1,0 +1,4 @@
+[
+  { "name": "upload", "description": "Uploads a VOD to YouTube.", "steps": ["download", "transcode", "upload", "publish"], "pause_before": ["publish"], "cancel_mode": "interrupt", "max_attempts": 3 },
+  { "name": "chat_backfill", "description": "Fills a gap in the chat log from a third-party provider.", "steps": ["fetch", "store"], "pause_before": [], "cancel_mode": "cooperative", "max_attempts": 5 }
+]

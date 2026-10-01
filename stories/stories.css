@@ -1,0 +1,3 @@
+/* Story sandbox only: Histoire keeps the page transparent, so each variant draws the library's own background. */
+.story-frame { box-sizing: border-box; min-height: 100vh; padding: 1rem; background: var(--vxp-bg); }
+.story-frame.chat { background: var(--vxp-chat-bg); color: var(--vxp-chat-ink); }
