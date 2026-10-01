@@ -1,5 +1,11 @@
 # @vexoulz/platform-web
 
+## 0.2.0
+
+### Minor Changes
+
+- 098c00e: `PlatformClient.jobCounts(q)` for vex-platform 0.5's `GET /jobs/counts` (runs per state, `kind`, `subject`, `since`), and `loadBadges(url)` in `./chat`, which reads a backend's `{channel, global}` Twitch badges for `toChatLine`.
+
 ## 0.1.1
 
 ### Patch Changes
