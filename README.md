@@ -14,7 +14,7 @@ npm test            # vitest, against v2 fixtures in tests/fixtures
 npm run typecheck   # vue-tsc
 npm run build       # → dist/ (index.js, chat.js, vue.js, style.css, types/)
 npm run story:dev   # Histoire on :6007, the components against the fixtures
-git config core.hooksPath .githooks   # once per clone: branch-name rules, see CONTRIBUTING.md
+git config core.hooksPath .conventions/githooks   # once per clone: branch-name rules, see CONTRIBUTING.md
 ```
 
 `main` is merge-only and branches follow [Conventional Branch](https://conventional-branch.github.io/)
