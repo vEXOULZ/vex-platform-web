@@ -30,7 +30,7 @@ Three entry points:
 
 | Import | What |
 |---|---|
-| `@vexoulz/platform-web` | `PlatformClient`, `ProblemError`/`errorText`, the v2 types, and pure helpers (`jobActions`, `stepStates`, `progressText`, `subjectOf`, `actorLabel`, `auditFilterQuery`, `timeAgo`, …) |
+| `@vexoulz/platform-web` | `PlatformClient`, `ProblemError`/`errorText`, the v2 types, and pure helpers (`jobActions`, `stepStates`, `progressText`, `subjectOf`, `actorLabel`, `auditFilterQuery`, `timeAgo`, `bytes`, …) |
 | `@vexoulz/platform-web/chat` | `tokenize`, `EmoteSet`, `resolveBadges`, `twitchColor`, `chatName`, `toChatLine` (a bot's v2 log entry → a chat line) and `loadChannelEmotes(twitchId)` (7TV, BTTV and FFZ, straight from the providers) |
 | `@vexoulz/platform-web/vue` | `createPlatformUi`, `usePoll`, `useCursorPages`, `useEventTail`, `useJobActions`, and the components below. Importing it loads `style.css` |
 

@@ -75,7 +75,7 @@ describe('progress and times', () => {
   it('reads progress as a ratio and as text', () => {
     expect(progressRatio({ done: 40, total: 100, unit: 'percent' })).toBe(0.4)
     expect(progressRatio({ done: 3, total: null, unit: 'items' })).toBeNull()
-    expect(progressText({ done: 1288490188, total: 4294967296, unit: 'bytes' })).toBe('1.2 GB / 4.0 GB')
+    expect(progressText({ done: 1288490188, total: 4294967296, unit: 'bytes' })).toBe('1.2 GB / 4 GB')
     expect(progressText({ done: 3, total: 12, unit: 'parts' })).toBe('3/12 parts')
     expect(progressText({ done: 62, total: null, unit: 'seconds' })).toBe('1m 02s')
     expect(bytes(512)).toBe('512 B')
