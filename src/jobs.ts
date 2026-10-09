@@ -1,4 +1,5 @@
 // What a site needs to show a job run: which actions apply, where it is in its steps, its progress.
+import { bytes } from './format'
 import type { EventOut, JobOut, JobState, Progress } from './types'
 
 export type Tone = 'default' | 'accent' | 'ok' | 'warn' | 'bad'
@@ -56,19 +57,6 @@ export function progressRatio(p: Progress | null | undefined): number | null {
   if (!p) return null
   if (p.unit === 'percent') return Math.min(1, Math.max(0, p.done / 100))
   return p.total ? Math.min(1, Math.max(0, p.done / p.total)) : null
-}
-
-/** Bytes → "18.4 GB" (binary units, as `du -h` counts them). */
-export function bytes(n: number | null | undefined): string {
-  if (n == null || !Number.isFinite(n)) return '—'
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  let v = n
-  let i = 0
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024
-    i++
-  }
-  return `${i && v < 10 ? v.toFixed(1) : Math.round(v)} ${units[i]}`
 }
 
 /** "42%", "1.2 GB / 3.4 GB", "3/12 parts". */
