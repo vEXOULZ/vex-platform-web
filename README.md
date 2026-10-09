@@ -52,7 +52,10 @@ await platform.retry(page.items[0]!.id, 'publish')
 ```
 
 Errors are `ProblemError`s parsed from RFC 9457 problem+json (`status`, `code`, `detail`, `errors[]`, `requestId`,
-`retryAfter`). v1 `{msg}` bodies are read too, so a site can use the same class for its older routes.
+`retryAfter`, and `extra` for the body fields a route adds). v1 bodies (`{msg}`, `{message}`, `{error}`, FastAPI's
+`{detail: [{msg}]}`) are read too, so a site can use the same class for its older routes. `retryAfter` is in seconds,
+from Retry-After as delay-seconds or an HTTP date; `retryAfterText()` gives "Try again in 5 min." for a login page,
+and `errorText(e)` the message to show for anything caught.
 
 ### Components
 
