@@ -1,5 +1,12 @@
 # @vexoulz/platform-web
 
+## 0.3.1
+
+### Patch Changes
+
+- 9636552: Less idle work: an emote's image URLs are built once instead of for every chat line it appears in, and `usePoll`
+  stops waking up on a hidden tab (it still reloads as soon as the tab is visible again).
+
 ## 0.3.0
 
 ### Minor Changes
