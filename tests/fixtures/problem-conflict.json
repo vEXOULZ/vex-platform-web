@@ -1,0 +1,11 @@
+{
+  "type": "about:blank",
+  "title": "Conflict",
+  "status": 409,
+  "detail": "Undo would discard edits made since.",
+  "instance": "/api/v2/vods/123/undo",
+  "code": "edited_since",
+  "request_id": "req_7f3a9c",
+  "edited": ["123.title", "123.games"],
+  "blockedBy": 811
+}

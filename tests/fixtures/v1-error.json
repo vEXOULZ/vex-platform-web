@@ -1,0 +1,1 @@
+{ "error": true, "msg": "Split point is inside an upload", "validPoints": [{ "at": 3600, "part": 2 }] }

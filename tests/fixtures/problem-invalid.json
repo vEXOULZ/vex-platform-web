@@ -1,0 +1,12 @@
+{
+  "type": "about:blank",
+  "title": "Unprocessable Content",
+  "status": 422,
+  "detail": "The request is invalid.",
+  "code": "invalid",
+  "request_id": "req_1b2c3d",
+  "errors": [
+    { "loc": ["body", "step"], "msg": "unknown step", "type": "value_error" },
+    { "loc": ["body", "limit"], "msg": "must be at most 200", "type": "less_than_equal" }
+  ]
+}

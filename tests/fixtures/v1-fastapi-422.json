@@ -1,0 +1,6 @@
+{
+  "detail": [
+    { "loc": ["body", "prefix"], "msg": "String should have at most 3 characters", "type": "string_too_long" },
+    { "loc": ["body", "tier"], "msg": "Input should be 'free' or 'plus'", "type": "enum" }
+  ]
+}
