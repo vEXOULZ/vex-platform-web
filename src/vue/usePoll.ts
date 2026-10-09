@@ -1,4 +1,4 @@
-// Load now, then again every `ms` while the tab is visible. Keeps the last good data when a refresh fails.
+// Load now, then again every `ms` while the tab is visible (and on coming back to it). Keeps the last good data when a refresh fails.
 import { onBeforeUnmount, onMounted, ref, shallowRef, type Ref } from 'vue'
 import { errorText } from '../errors'
 
@@ -34,7 +34,7 @@ export function usePoll<T>(load: (signal: AbortSignal) => Promise<T>, ms: number
   function schedule() {
     clearTimeout(timer)
     const wait = interval()
-    if (!stopped && wait > 0) timer = setTimeout(() => (document.hidden ? schedule() : refresh()), wait)
+    if (!stopped && wait > 0) timer = setTimeout(() => !document.hidden && refresh(), wait)
   }
 
   const onVisible = () => {

@@ -80,11 +80,19 @@ const IMAGES: Record<EmoteProvider, { url: (id: string, size: string) => string;
 }
 
 export function emoteImage(e: Pick<Emote, 'provider' | 'id'>): EmoteImage {
-  const { url, sizes } = IMAGES[e.provider]
-  const id = encodeURIComponent(e.id)
-  const urls = Object.entries(sizes).map(([d, s]) => [d, url(id, s)] as const)
-  return { src: urls[0]![1], srcset: urls.map(([d, u]) => `${u} ${d}`).join(', '), large: urls.at(-1)![1] }
+  const key = `${e.provider}:${e.id}`
+  let image = images.get(key)
+  if (!image) {
+    const { url, sizes } = IMAGES[e.provider]
+    const id = encodeURIComponent(e.id)
+    const urls = Object.entries(sizes).map(([d, s]) => [d, url(id, s)] as const)
+    image = { src: urls[0]![1], srcset: urls.map(([d, u]) => `${u} ${d}`).join(', '), large: urls.at(-1)![1] }
+    images.set(key, image)
+  }
+  return image
 }
+// Chat repeats the same few emotes, so each one's URLs are built once.
+const images = new Map<string, EmoteImage>()
 
 // Each provider's page for an emote. Twitch has none, and which channel a Twitch emote belongs to isn't saved with chat.
 const PAGES: Record<Exclude<EmoteProvider, 'twitch'>, string> = {
