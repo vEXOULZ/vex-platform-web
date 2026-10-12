@@ -90,7 +90,7 @@ Tables scroll sideways on narrow screens rather than dropping columns.
 
 ### Styling
 
-Map the variables once, after the library's stylesheet:
+Map the variables once, on a plain `:root`:
 
 ```css
 /* src/styles/platform.css */
@@ -106,7 +106,10 @@ Map the variables once, after the library's stylesheet:
 }
 ```
 
-The full list is at the top of [src/style.css](src/style.css).
+The library declares its defaults (light, and dark under `prefers-color-scheme`) on `:where(:root)`, which has no
+specificity, so a site's `:root` rule wins whatever order the stylesheets load in, including when the library's CSS
+arrives later with a lazily loaded page. No `:root:root` or `!important` is needed. The full list is at the top of
+[src/style.css](src/style.css).
 
 ## Releasing
 
