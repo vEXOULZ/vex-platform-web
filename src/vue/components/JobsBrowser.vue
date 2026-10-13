@@ -1,11 +1,14 @@
 <script setup lang="ts">
 // The job queue: state tabs, kind and subject filters, the first page refreshed every few seconds and older pages on
-// demand. The filters are a v-model, so the site can keep them in its URL.
+// demand. The filters are a v-model, so the site can keep them in its URL. Ticked runs can be resumed, paused, retried
+// or cancelled together; each button counts the ticked runs it applies to.
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { PlatformClient } from '../../client'
+import { batchTargets, type BatchAction } from '../../jobs'
 import type { JobKindOut, JobState } from '../../types'
 import type { JobFilters } from '../types'
 import { useCursorPages } from '../useCursorPages'
+import { useJobBatch } from '../useJobBatch'
 import JobsTable from './JobsTable.vue'
 
 const props = withDefaults(
@@ -17,8 +20,10 @@ const props = withDefaults(
     pageSize?: number
     /** What the subject filter's placeholder says (`vod:123`). */
     subjectHint?: string
+    /** Tick runs to act on several at once. */
+    selectable?: boolean
   }>(),
-  { kinds: null, poll: 5000, pageSize: 50, subjectHint: 'type:id' },
+  { kinds: null, poll: 5000, pageSize: 50, subjectHint: 'type:id', selectable: true },
 )
 const filters = defineModel<JobFilters>('filters', { default: () => ({ state: 'all', kind: '', subject: '' }) })
 
@@ -75,7 +80,36 @@ const pages = useCursorPages(
     ),
   { poll: props.poll },
 )
-watch(() => [filters.value.state, filters.value.kind, filters.value.subject], () => pages.reset())
+const selected = ref<number[]>([])
+watch(
+  () => [filters.value.state, filters.value.kind, filters.value.subject],
+  () => {
+    selected.value = []
+    pages.reset()
+  },
+)
+
+/** The ticked runs, as the latest refresh has them. */
+const chosen = computed(() => {
+  const ids = new Set(selected.value)
+  return pages.items.value.filter((j) => ids.has(j.id))
+})
+const BATCH: { action: BatchAction; label: string; title: string }[] = [
+  { action: 'resume', label: 'Resume', title: 'The paused ones' },
+  { action: 'pause', label: 'Pause', title: 'The queued and running ones' },
+  { action: 'retry', label: 'Retry', title: 'The failed and cancelled ones, from where they stopped' },
+]
+const cancellable = computed(() => batchTargets(chosen.value, 'cancel').length)
+const batch = useJobBatch(props.client, ({ ok }) => {
+  const done = new Set(ok)
+  selected.value = selected.value.filter((id) => !done.has(id))
+  pages.refresh()
+})
+const dialog = ref<HTMLDialogElement | null>(null)
+function cancelChosen() {
+  dialog.value?.close()
+  batch.run('cancel', chosen.value)
+}
 
 defineExpose({ refresh: pages.refresh })
 </script>
@@ -118,7 +152,30 @@ defineExpose({ refresh: pages.refresh })
       <div v-for="i in 6" :key="i" class="vxp-skeleton" />
     </div>
     <template v-else-if="pages.loaded.value">
-      <JobsTable :jobs="pages.items.value" empty="No jobs match these filters." />
+      <div v-if="selectable && chosen.length" class="vxp-panel batch" role="group" aria-label="Ticked jobs">
+        <span class="vxp-small count"><strong>{{ chosen.length }}</strong> ticked</span>
+        <button
+          v-for="b in BATCH"
+          :key="b.action"
+          type="button"
+          class="vxp-btn sm"
+          :title="b.title"
+          :disabled="!!batch.busy.value || !batchTargets(chosen, b.action).length"
+          :aria-busy="batch.busy.value === b.action"
+          @click="batch.run(b.action, chosen)"
+        >{{ b.label }} {{ batchTargets(chosen, b.action).length }}</button>
+        <button
+          type="button"
+          class="vxp-btn sm danger"
+          title="The queued, running and paused ones"
+          :disabled="!!batch.busy.value || !cancellable"
+          :aria-busy="batch.busy.value === 'cancel'"
+          @click="dialog?.showModal()"
+        >Cancel {{ cancellable }}</button>
+        <span class="grow" />
+        <button type="button" class="vxp-btn sm" @click="selected = []">Untick all</button>
+      </div>
+      <JobsTable v-model:selected="selected" :jobs="pages.items.value" :selectable="selectable" empty="No jobs match these filters." />
       <div class="more">
         <button v-if="pages.hasOlder.value" type="button" class="vxp-btn" :aria-busy="pages.loadingOlder.value" :disabled="pages.loadingOlder.value" @click="pages.loadOlder">
           Older jobs
@@ -126,6 +183,15 @@ defineExpose({ refresh: pages.refresh })
         <span class="vxp-muted vxp-mono vxp-small">{{ pages.items.value.length }} shown<template v-if="poll"> · refreshes every {{ Math.round(poll / 1000) }} s</template></span>
       </div>
     </template>
+
+    <dialog ref="dialog" class="vxp-dialog" aria-labelledby="vxp-batch-cancel-title">
+      <h2 id="vxp-batch-cancel-title">Cancel {{ cancellable }} job{{ cancellable === 1 ? '' : 's' }}?</h2>
+      <p>Running steps stop where they are, or when they next check for a cancel. Each job can be retried later from the step it was on.</p>
+      <div class="actions">
+        <button type="button" class="vxp-btn" @click="dialog?.close()">Keep them</button>
+        <button type="button" class="vxp-btn danger-solid" @click="cancelChosen">Cancel {{ cancellable }}</button>
+      </div>
+    </dialog>
   </div>
 </template>
 
@@ -137,6 +203,8 @@ defineExpose({ refresh: pages.refresh })
 .subject { flex: 0 1 200px; }
 .grow { flex: 1; }
 .retry { margin-top: 8px; }
+.batch { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 8px; position: sticky; top: 0; z-index: 1; }
+.count { margin-right: 4px; }
 .sk { display: flex; flex-direction: column; gap: 6px; }
 .more { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 4px; }
 </style>
