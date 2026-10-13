@@ -7,6 +7,7 @@ export { usePoll } from './usePoll'
 export { useCursorPages, mergePages, type CursorPagesOptions } from './useCursorPages'
 export { useEventTail, type EventTailOptions } from './useEventTail'
 export { useJobActions, type JobAction } from './useJobActions'
+export { useJobBatch, type BatchResult } from './useJobBatch'
 
 export { default as PlatformLink } from './components/PlatformLink.vue'
 export { default as StateChip } from './components/StateChip.vue'

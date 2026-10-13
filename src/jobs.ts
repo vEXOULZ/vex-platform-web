@@ -28,6 +28,13 @@ export function jobActions(job: Pick<JobOut, 'state' | 'cancel_requested'>) {
   }
 }
 
+export type BatchAction = 'pause' | 'resume' | 'retry' | 'cancel'
+
+/** The runs among `jobs` that `action` applies to in their state; sending it to the others would be a 409. */
+export function batchTargets<J extends Pick<JobOut, 'state' | 'cancel_requested'>>(jobs: readonly J[], action: BatchAction): J[] {
+  return jobs.filter((j) => jobActions(j)[action])
+}
+
 /** Where a run is in its steps: 0-based index of the current step, and the total. */
 export function stepPosition(job: Pick<JobOut, 'state' | 'step' | 'steps'>): { index: number; total: number } {
   const total = job.steps.length
