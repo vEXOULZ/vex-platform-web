@@ -1,5 +1,13 @@
 # @vexoulz/platform-web
 
+## 0.7.0
+
+### Minor Changes
+
+- 321fe3e: A queued run whose start is still ahead (a retry backoff, or a step that put itself off to a set time such as a
+  YouTube daily limit) reads "scheduled" in its state chip, with when it starts and its last error in the jobs table.
+  New `scheduledFor(job)`; the detail's "Next try" is now "Starts".
+
 ## 0.6.0
 
 ### Minor Changes
