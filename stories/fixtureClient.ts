@@ -30,6 +30,19 @@ export function fixtureClient(): PlatformClient {
     child(814, backfill.id, 'vod:2551230002', 'failed'),
     child(815, 814, 'vod:2551230002', 'queued'),
     { ...backfill, id: 790, state: 'succeeded', last_error: null, parent_id: null },
+    // Put off to a set time by its step (a YouTube daily limit), so it reads "scheduled".
+    {
+      ...backfill,
+      id: 816,
+      kind: 'upload',
+      subject: 'vod:2551230003',
+      state: 'queued',
+      step: backfill.steps[0] ?? null,
+      attempts: 0,
+      parent_id: null,
+      not_before: new Date(Date.now() + 9 * 3600_000).toISOString(),
+      last_error: "YouTube refused videos.insert: the channel's upload limit is used up (uploadLimitExceeded); trying again at 2026-10-15 13:05 UTC (1 of 3)",
+    },
   ]
   return new PlatformClient({
     base: '/api/v2',

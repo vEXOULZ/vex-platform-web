@@ -2,7 +2,7 @@
 // Job runs, newest first: id (linked to the run's page), kind, subject, state, step and when it last changed. With
 // `selectable`, a checkbox on each row and one in the header for all of them, as a v-model of ids (`selected`).
 import { computed } from 'vue'
-import { stepPosition } from '../../jobs'
+import { scheduledFor, stepPosition } from '../../jobs'
 import type { JobOut } from '../../types'
 import { usePlatformUi } from '../config'
 import PlatformLink from './PlatformLink.vue'
@@ -69,14 +69,17 @@ function toggleAll(on: boolean) {
           <td class="vxp-mono id"><PlatformLink :to="ui.jobHref(j.id)">{{ j.id }}</PlatformLink></td>
           <td class="vxp-mono">{{ j.kind }}</td>
           <td><SubjectLink :subject="j.subject" /></td>
-          <td><StateChip :state="j.state" :cancelling="j.cancel_requested && j.state === 'running'" /></td>
+          <td>
+            <StateChip :state="j.state" :cancelling="j.cancel_requested && j.state === 'running'" :scheduled="scheduledFor(j)" />
+            <div v-if="scheduledFor(j)" class="vxp-muted nowrap" :title="ui.stamp(j.not_before)">{{ ui.timeAgo(j.not_before) }}</div>
+          </td>
           <td class="vxp-mono">
             <span v-if="j.state === 'succeeded'" class="vxp-muted">finished</span>
             <template v-else>
               {{ j.step ?? '—' }}
               <span class="vxp-muted">{{ stepPosition(j).index + 1 }}/{{ stepPosition(j).total }}</span>
             </template>
-            <div v-if="j.last_error && j.state === 'failed'" class="err" :title="j.last_error">{{ j.last_error }}</div>
+            <div v-if="j.last_error && (j.state === 'failed' || scheduledFor(j))" class="err" :title="j.last_error">{{ j.last_error }}</div>
           </td>
           <td class="vxp-muted right nowrap" :title="ui.stamp(j.updated_at)">{{ ui.timeAgo(j.updated_at) }}</td>
         </tr>
