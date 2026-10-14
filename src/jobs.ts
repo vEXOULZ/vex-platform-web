@@ -15,6 +15,14 @@ export const STATE_TONE: Record<JobState, Tone> = {
 
 export const isActive = (state: JobState): boolean => state === 'queued' || state === 'running' || state === 'paused'
 
+/**
+ * When a queued run is due to start, if that is still ahead: a retry backoff, or a step that put itself off to a set
+ * time (vex-platform's `StepDeferred`, such as a daily quota). Null for anything else.
+ */
+export function scheduledFor(job: Pick<JobOut, 'state' | 'not_before'>, now = Date.now()): string | null {
+  return job.state === 'queued' && job.not_before && Date.parse(job.not_before) > now ? job.not_before : null
+}
+
 /** The actions vex-platform accepts for a run in its state (anything else is a 409 `job_conflict`). */
 export function jobActions(job: Pick<JobOut, 'state' | 'cancel_requested'>) {
   return {

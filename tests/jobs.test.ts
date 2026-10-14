@@ -11,6 +11,7 @@ import {
   progressRatio,
   progressText,
   runTime,
+  scheduledFor,
   stepPosition,
   stepStates,
   subjectOf,
@@ -28,6 +29,18 @@ import jobs from './fixtures/jobs.json'
 const running = jobs.items[0] as JobOut
 const failed = jobs.items[1] as JobOut
 const as = (state: JobState, extra: Partial<JobOut> = {}): JobOut => ({ ...running, state, ...extra })
+
+describe('scheduledFor', () => {
+  const now = Date.parse('2026-10-14T12:00:00Z')
+  it('is a queued run whose start is still ahead', () => {
+    expect(scheduledFor(as('queued', { not_before: '2026-10-15T07:05:00Z' }), now)).toBe('2026-10-15T07:05:00Z')
+  })
+  it('is null once it is due, without a start time, or for any other state', () => {
+    expect(scheduledFor(as('queued', { not_before: '2026-10-14T11:59:00Z' }), now)).toBeNull()
+    expect(scheduledFor(as('queued', { not_before: null }), now)).toBeNull()
+    expect(scheduledFor(as('failed', { not_before: '2026-10-15T07:05:00Z' }), now)).toBeNull()
+  })
+})
 
 describe('jobActions', () => {
   it('allows what vex-platform allows in each state', () => {

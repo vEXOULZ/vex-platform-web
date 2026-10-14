@@ -27,5 +27,8 @@ const rows = jobs.items as JobOut[]
     <Variant title="Detail: child run">
       <div class="vxp story-frame"><JobDetail :client="client" :id="814" /></div>
     </Variant>
+    <Variant title="Detail: scheduled">
+      <div class="vxp story-frame"><JobDetail :client="client" :id="816" /></div>
+    </Variant>
   </Story>
 </template>

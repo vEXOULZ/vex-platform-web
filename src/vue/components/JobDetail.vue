@@ -3,7 +3,7 @@
 // its events while it can still change.
 import { computed, ref, watch } from 'vue'
 import type { PlatformClient } from '../../client'
-import { duration, isActive, jobActions, progressRatio, progressText, runTime, stepStates } from '../../jobs'
+import { duration, isActive, jobActions, progressRatio, progressText, runTime, scheduledFor, stepStates } from '../../jobs'
 import type { JobKindOut, JobOut } from '../../types'
 import { usePlatformUi } from '../config'
 import { useEventTail } from '../useEventTail'
@@ -147,7 +147,7 @@ defineExpose({ refresh })
 
       <div class="summary vxp-panel">
         <dl>
-          <div><dt>State</dt><dd><StateChip :state="job.state" :cancelling="job.cancel_requested && isActive(job.state)" /></dd></div>
+          <div><dt>State</dt><dd><StateChip :state="job.state" :cancelling="job.cancel_requested && isActive(job.state)" :scheduled="scheduledFor(job)" /></dd></div>
           <div><dt>Kind</dt><dd class="vxp-mono" :title="kindInfo?.description">{{ job.kind }}</dd></div>
           <div><dt>Subject</dt><dd><SubjectLink :subject="job.subject" /><slot name="subject" :job="job" /></dd></div>
           <div><dt>Attempts</dt><dd class="vxp-mono">{{ job.attempts }}<template v-if="kindInfo?.max_attempts"> / {{ kindInfo.max_attempts }}</template></dd></div>
@@ -157,7 +157,7 @@ defineExpose({ refresh })
           <div v-if="job.finished_at"><dt>Finished</dt><dd :title="ui.stamp(job.finished_at)">{{ ui.timeAgo(job.finished_at) }}</dd></div>
           <div v-if="took !== null"><dt>{{ job.finished_at ? 'Took' : 'Running for' }}</dt><dd class="vxp-mono">{{ duration(took) }}</dd></div>
           <div v-if="job.parent_id"><dt>Queued by</dt><dd class="vxp-mono"><PlatformLink :to="ui.jobHref(job.parent_id)">job #{{ job.parent_id }}</PlatformLink></dd></div>
-          <div v-if="job.not_before && job.state === 'queued'"><dt>Next try</dt><dd :title="ui.stamp(job.not_before)">{{ ui.timeAgo(job.not_before) }}</dd></div>
+          <div v-if="job.not_before && job.state === 'queued'"><dt>Starts</dt><dd :title="ui.stamp(job.not_before)">{{ ui.timeAgo(job.not_before) }}</dd></div>
         </dl>
         <p v-if="kindInfo?.description" class="desc vxp-muted">{{ kindInfo.description }}</p>
         <p v-if="job.cancel_requested && isActive(job.state)" class="vxp-callout warn">
