@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // One chat line as Twitch shows it: reward, badges, the coloured name, bits, then the text with its emotes. Notices
 // (subs, raids, redemptions, moderation) are the text alone, set off; removed messages are struck through with why.
-// The `before` slot goes first on the line (a timestamp), the `after` slot last.
+// The `before` slot goes first on the line (a timestamp), the `after` slot last. With `userCards`, the name is a button
+// asking for the chatter's card (`UserCard`).
 import { twitchColor } from '../../chat/color'
 import { chatName, removalNote, type ChatLine, type EmoteToken, type NameMode } from '../../chat/message'
 import ChatEmote from './ChatEmote.vue'
@@ -17,10 +18,14 @@ const props = withDefaults(
     emotes?: Partial<Record<'7tv' | 'bttv' | 'ffz', boolean>>
     /** The emote whose menu is open, for its `aria-expanded`. */
     openToken?: EmoteToken | null
+    /** Make the name a button that emits `user`. */
+    userCards?: boolean
+    /** This line's user card is open, for the name's `aria-expanded`. */
+    userOpen?: boolean
   }>(),
-  { badges: true, colors: 'readable', names: 'display', emotes: () => ({}), openToken: null },
+  { badges: true, colors: 'readable', names: 'display', emotes: () => ({}), openToken: null, userCards: false, userOpen: false },
 )
-const emit = defineEmits<{ emoteMenu: [token: EmoteToken, anchor: HTMLElement] }>()
+const emit = defineEmits<{ emoteMenu: [token: EmoteToken, anchor: HTMLElement]; user: [line: ChatLine, anchor: HTMLElement] }>()
 
 const color = () => twitchColor(props.line.user, props.line.color, props.colors)
 const name = () => chatName(props.line.user, props.line.login, props.names)
@@ -36,8 +41,14 @@ const name = () => chatName(props.line.user, props.line.login, props.names)
       <span v-if="badges && line.badges.length" class="badges">
         <img v-for="b in line.badges" :key="b.setId" :src="b.src" :srcset="b.srcset" :alt="b.title" :title="b.title" width="18" height="18" loading="lazy" />
       </span>
-      <span class="who" :class="{ me: line.action }" :style="{ color: color() }"
-        >{{ name().name }}<span v-if="name().login" class="login"> ({{ name().login }})</span></span
+      <component
+        :is="userCards ? 'button' : 'span'"
+        class="who"
+        :class="{ me: line.action, btn: userCards }"
+        :style="{ color: color() }"
+        v-bind="userCards ? { type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': userOpen } : {}"
+        @click="userCards && emit('user', line, $event.currentTarget as HTMLElement)"
+        >{{ name().name }}<span v-if="name().login" class="login"> ({{ name().login }})</span></component
       >
       <span v-if="line.bits" class="tag mono">{{ line.bits }} bits</span>
     </template>
@@ -59,6 +70,9 @@ const name = () => chatName(props.line.user, props.line.login, props.names)
 .who { font-weight: 700; }
 .who::after { content: ':'; color: var(--vxp-chat-muted); margin-right: 5px; }
 .who.me::after { content: ''; margin-right: 5px; }
+.who.btn { padding: 0; font: inherit; font-weight: 700; background: none; border: 0; border-radius: 3px; cursor: pointer; }
+.who.btn:hover { text-decoration: underline; }
+.who.btn:focus-visible { outline: 2px solid var(--vxp-ring); outline-offset: 1px; }
 .login { font-weight: 400; color: var(--vxp-chat-muted); }
 .text.me { font-style: italic; }
 .tag {

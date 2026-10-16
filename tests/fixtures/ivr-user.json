@@ -1,0 +1,28 @@
+[
+  {
+    "banned": false,
+    "displayName": "vEXOULZ",
+    "login": "vexoulz",
+    "id": "40424907",
+    "bio": "Streams and VODs. ",
+    "follows": null,
+    "followers": 1234,
+    "profileViewCount": null,
+    "panelCount": 3,
+    "chatColor": "#8A2BE2",
+    "logo": "https://static-cdn.jtvnw.net/jtv_user_pictures/placeholder-profile_image-300x300.png",
+    "banner": null,
+    "verifiedBot": false,
+    "createdAt": "2013-02-03T10:20:30.123Z",
+    "updatedAt": "2026-09-01T12:00:00.000Z",
+    "deletedAt": null,
+    "emotePrefix": "vexoul",
+    "roles": { "isAffiliate": true, "isPartner": false, "isStaff": null },
+    "badges": [],
+    "chatterCount": 0,
+    "chatSettings": { "chatDelayMs": 0, "followersOnlyDurationMinutes": null, "slowModeDurationSeconds": null, "blockLinks": false, "isSubscribersOnlyModeEnabled": false, "isEmoteOnlyModeEnabled": false, "isFastSubsModeEnabled": false, "isUniqueChatModeEnabled": false, "requireVerifiedAccount": false, "rules": [] },
+    "stream": null,
+    "lastBroadcast": { "startedAt": "2026-10-14T18:00:00Z", "title": "placeholder" },
+    "panels": []
+  }
+]

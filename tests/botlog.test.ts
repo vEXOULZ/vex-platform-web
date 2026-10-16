@@ -37,6 +37,8 @@ describe('toChatLine', () => {
     const line = toChatLine(message(), emotes, badges)
     expect(plain(line.tokens)).toBe('hi [Kappa] [catJAM]')
     expect([line.kind, line.user, line.login, line.color, line.badges.map((b) => b.title)]).toEqual(['message', 'SomeOne', 'someone', '#FF0000', ['Moderator']])
+    expect(line.userId).toBe('1')
+    expect(toChatLine(message({ user: null })).userId).toBeNull()
     expect(toChatLine(message({ message_type: 'action', bits: 50 })).action).toBe(true)
     expect(toChatLine(message({ deleted_at: '2026-09-30T18:01:00Z' })).removed?.type).toBe('delete')
     expect(toChatLine(message({ reward_id: 'r1' })).reward?.title).toBe('Reward')
