@@ -31,7 +31,7 @@ Three entry points:
 | Import | What |
 |---|---|
 | `@vexoulz/platform-web` | `PlatformClient`, `ProblemError`/`errorText`, the v2 types, and pure helpers (`jobActions`, `stepStates`, `progressText`, `subjectOf`, `actorLabel`, `auditFilterQuery`, `timeAgo`, `bytes`, …) |
-| `@vexoulz/platform-web/chat` | `tokenize`, `EmoteSet`, `resolveBadges`, `twitchColor`, `chatName`, `toChatLine` (a bot's v2 log entry → a chat line) and `loadChannelEmotes(twitchId)` (7TV, BTTV and FFZ, straight from the providers) |
+| `@vexoulz/platform-web/chat` | `tokenize`, `EmoteSet`, `resolveBadges`, `twitchColor`, `chatName`, `toChatLine` (a bot's v2 log entry → a chat line) `loadChannelEmotes(twitchId)` (7TV, BTTV and FFZ, straight from the providers) and `twitchUserLookup(url)` (a chatter's public profile from doomtp-bot's `/api/v2/twitch/users`) |
 | `@vexoulz/platform-web/vue` | `createPlatformUi`, `usePoll`, `useCursorPages`, `useEventTail`, `useJobActions`, and the components below. Importing it loads `style.css` |
 
 The first two have no framework dependency. `vue ^3.5` is an optional peer, needed only for `./vue`.
@@ -85,6 +85,7 @@ app.use(
 | `AuditTable` | The rows alone; `#actor` and `#scope` slots |
 | `ChatLine` | One chat line: badges, name colour, emotes (with zero-width stacking), rewards, removed messages and notices; `#before`/`#after` slots for a timestamp or extra columns |
 | `ChatEmote` | One emote, with its menu button |
+| `UserCard` | The card a name opens (`ChatLine` with `user-cards`, `@user`): picture, id, account age, followers, roles, bio and a Twitch link; `#actions` for the site's own buttons. The profile comes from `createPlatformUi({ userLookup: twitchUserLookup(url) })`; without one the card shows what the chat line knows |
 
 Tables scroll sideways on narrow screens rather than dropping columns.
 

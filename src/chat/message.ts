@@ -59,6 +59,8 @@ export interface ChatLine {
   user: string
   /** The username (login), or null when the source can't tell it. */
   login: string | null
+  /** The chatter's Twitch user id, when the source has it (doomtp-bot's chat does; Twitch's VOD replay doesn't). */
+  userId?: string | null
   /** The user's chosen colour, or null (render with `twitchColor`, which picks Twitch's default). */
   color: string | null
   badges: Badge[]

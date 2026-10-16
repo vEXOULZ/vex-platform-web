@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { EmoteSet, toChatLine, type LogMessage, type LogModeration } from '../src/chat'
 import { ChatLine } from '../src/vue'
+import UserCardDemo from './UserCardDemo.vue'
 
 const emotes = new EmoteSet().add('bttv', [{ id: '5f1b0186cf6d2144653d2970', code: 'catJAM' }])
 const user = { id: '1', login: 'someone', display_name: 'SomeOne' }
@@ -31,6 +32,12 @@ const lines = [
         <ChatLine v-for="l in lines" :key="l.id" :line="l">
           <template #before><span class="vxp-mono vxp-muted" style="margin-right: 0.5ch">18:00</span></template>
         </ChatLine>
+      </div>
+    </Variant>
+    <Variant title="User cards">
+      <div class="vxp story-frame chat">
+        <p class="vxp-muted vxp-small">Click a name. SomeOne has a profile; dimname has none.</p>
+        <UserCardDemo :lines="lines" />
       </div>
     </Variant>
     <Variant title="Raw colours, login names">
