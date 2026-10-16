@@ -1,66 +1,63 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { accountAge, clearUserCache, loadTwitchUser, parseIvrUser, USER_API } from '../src/chat'
-import ivr from './fixtures/ivr-user.json'
+import { describe, expect, it, vi } from 'vitest'
+import { accountAge, parseTwitchUser, twitchUserLookup, userQuery } from '../src/chat'
+import fixture from './fixtures/twitch-user.json'
 
 const ok = (body: unknown, status = 200) => Promise.resolve(new Response(JSON.stringify(body), { status }))
+const URL = '/api/v2/twitch/users'
 
-afterEach(() => clearUserCache())
-
-describe('parseIvrUser', () => {
-  it('reads ivr.fi v2 user', () => {
-    expect(parseIvrUser(ivr)).toEqual({
+describe('parseTwitchUser', () => {
+  it("reads doomtp-bot's /api/v2/twitch/users", () => {
+    expect(parseTwitchUser(fixture)).toEqual({
       id: '40424907',
       login: 'vexoulz',
       displayName: 'vEXOULZ',
       avatar: 'https://static-cdn.jtvnw.net/jtv_user_pictures/placeholder-profile_image-300x300.png',
       bio: 'Streams and VODs.',
-      createdAt: '2013-02-03T10:20:30.123Z',
-      followers: 1234,
-      color: '#8A2BE2',
-      partner: false,
-      affiliate: true,
+      createdAt: '2013-02-03T10:20:30Z',
+      broadcasterType: 'affiliate',
       staff: false,
-      bot: false,
-      banned: false,
-      banReason: null,
     })
+    expect(parseTwitchUser({ ...fixture, type: 'global_mod', broadcaster_type: 'partner' })).toMatchObject({ staff: true, broadcasterType: 'partner' })
   })
 
-  it('is null for an empty answer or one without an id', () => {
-    expect(parseIvrUser([])).toBeNull()
-    expect(parseIvrUser(null)).toBeNull()
-    expect(parseIvrUser([{ login: 'x' }])).toBeNull()
-  })
-
-  it('drops a picture that is not https', () => {
-    expect(parseIvrUser([{ id: '1', login: 'a', logo: 'javascript:alert(1)' }])?.avatar).toBeNull()
+  it('is null for something that is not a user, and drops a picture that is not https', () => {
+    expect(parseTwitchUser(null)).toBeNull()
+    expect(parseTwitchUser({ login: 'x' })).toBeNull()
+    expect(parseTwitchUser({ id: '1', login: 'a', profile_image_url: 'javascript:alert(1)' })?.avatar).toBeNull()
   })
 })
 
-describe('loadTwitchUser', () => {
+describe('twitchUserLookup', () => {
   it('asks by id when it has one, else by login', () => {
-    expect(USER_API.ivr({ id: '1', login: 'a' })).toBe('https://api.ivr.fi/v2/twitch/user?id=1')
-    expect(USER_API.ivr({ login: 'Some One' })).toBe('https://api.ivr.fi/v2/twitch/user?login=Some%20One')
+    expect(userQuery({ id: '1', login: 'a' })).toBe('id=1')
+    expect(userQuery({ login: 'Some_One' })).toBe('login=some_one')
   })
 
-  it('fetches each user once', async () => {
-    const fetch = vi.fn(() => ok(ivr))
-    const [a, b] = await Promise.all([loadTwitchUser({ login: 'vexoulz' }, { fetch }), loadTwitchUser({ login: 'VEXOULZ' }, { fetch })])
+  it('fetches each user once, without cookies', async () => {
+    const fetch = vi.fn((_url: string, _init?: RequestInit) => ok(fixture))
+    const look = twitchUserLookup(URL, { fetch })
+    const [a, b] = await Promise.all([look({ login: 'vexoulz' }), look({ login: 'VEXOULZ' })])
     expect(a?.id).toBe('40424907')
     expect(b).toBe(a)
     expect(fetch).toHaveBeenCalledTimes(1)
+    expect(fetch.mock.calls[0]![0]).toBe('/api/v2/twitch/users?login=vexoulz')
+    expect(fetch.mock.calls[0]![1]?.credentials).toBe('omit')
   })
 
-  it('is null for no key or an unknown user, and retries after a failure', async () => {
-    expect(await loadTwitchUser({})).toBeNull()
-    expect(await loadTwitchUser({ login: 'nobody' }, { fetch: () => ok([]) })).toBeNull()
-    await expect(loadTwitchUser({ login: 'flaky' }, { fetch: () => ok({}, 503) })).rejects.toThrow('503')
-    expect((await loadTwitchUser({ login: 'flaky' }, { fetch: () => ok(ivr) }))?.login).toBe('vexoulz')
+  it('is null for no key or a 404, and retries after a failure', async () => {
+    const look = twitchUserLookup(URL, { fetch: () => ok({ code: 'not_found' }, 404) })
+    expect(await look({})).toBeNull()
+    expect(await look({ id: '9' })).toBeNull()
+    let down = true
+    const flaky = twitchUserLookup(URL, { fetch: () => (down ? ok({}, 503) : ok(fixture)) })
+    await expect(flaky({ id: '40424907' })).rejects.toThrow('503')
+    down = false
+    expect((await flaky({ id: '40424907' }))?.login).toBe('vexoulz')
   })
 
   it('stops waiting when its signal aborts', async () => {
     const c = new AbortController()
-    const p = loadTwitchUser({ id: '9' }, { signal: c.signal, fetch: () => new Promise(() => {}) })
+    const p = twitchUserLookup(URL, { fetch: () => new Promise(() => {}) })({ id: '9' }, { signal: c.signal })
     c.abort()
     await expect(p).rejects.toThrow('Aborted')
   })

@@ -2,7 +2,7 @@
 // subject lives, how to tell the user something happened, and how to show times.
 import { inject, type App, type Component, type InjectionKey } from 'vue'
 import { stamp, timeAgo } from '../time'
-import { loadTwitchUser, type UserLookup } from '../chat/users'
+import type { UserLookup } from '../chat/users'
 
 export type NotifyKind = 'ok' | 'error' | 'info'
 
@@ -19,7 +19,8 @@ export interface PlatformUiOptions {
   stamp?: (iso: string | null | undefined) => string
   /** What the app's own actions (`system` actor) are called in the audit. */
   appName?: string
-  /** Where `UserCard` gets a chatter's Twitch profile. Default: ivr.fi's public API (`loadTwitchUser`). */
+  /** Where `UserCard` gets a chatter's Twitch profile: `twitchUserLookup('/api/v2/twitch/users')` over doomtp-bot's
+   * route. Without one the card shows only what the chat line knows. */
   userLookup?: UserLookup
 }
 
@@ -31,7 +32,7 @@ export interface PlatformUi {
   timeAgo: (iso: string | null | undefined) => string
   stamp: (iso: string | null | undefined) => string
   appName: string
-  userLookup: UserLookup
+  userLookup: UserLookup | null
 }
 
 export const PLATFORM_UI: InjectionKey<PlatformUi> = Symbol('vexoulz-platform-ui')
@@ -45,7 +46,7 @@ export function resolveUi(o: PlatformUiOptions = {}): PlatformUi {
     timeAgo: o.timeAgo ?? ((iso) => timeAgo(iso)),
     stamp: o.stamp ?? stamp,
     appName: o.appName ?? 'system',
-    userLookup: o.userLookup ?? loadTwitchUser,
+    userLookup: o.userLookup ?? null,
   }
 }
 
