@@ -1,4 +1,4 @@
-# @vexoulz/platform-web
+# @vex/platform-web
 
 ## 0.8.0
 
