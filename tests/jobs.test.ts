@@ -122,7 +122,7 @@ describe('subjects and audit', () => {
 
   it('names actors', () => {
     const [user, key, system] = audit.items as AuditOut[]
-    expect([actorLabel(user!), actorLabel(key!), actorLabel(system!, 'archive')]).toEqual(['@vexoulz', 'key k7', 'archive'])
+    expect([actorLabel(user!), actorLabel(key!), actorLabel(system!, 'archive')]).toEqual(['@example', 'key k7', 'archive'])
   })
 
   it('shows what changed', () => {

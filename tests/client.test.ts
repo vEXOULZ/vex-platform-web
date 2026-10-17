@@ -55,7 +55,7 @@ describe('PlatformClient', () => {
     expect((await api.jobKinds()).map((k) => k.cancel_mode)).toEqual(['interrupt', 'cooperative'])
     const a = await api.audit({ action: 'job.', actor: 'me', outcome: 'ok' })
     expect(fetch.mock.calls[2]![0]).toBe('/api/v2/audit?action=job.&actor=me&outcome=ok')
-    expect(a.items[1]!.scope_name).toBe('vexoulz')
+    expect(a.items[1]!.scope_name).toBe('example')
   })
 
   it('sends the CSRF token and a JSON body on writes only', async () => {
