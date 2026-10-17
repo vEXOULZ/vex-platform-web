@@ -1,5 +1,13 @@
 # @vex/platform-web
 
+## 0.9.0
+
+### Minor Changes
+
+- 44f3632: The package is now `@vex/platform-web`, installed from `github:vexouLuna/vex-platform-web`. Sites change their
+  imports from `@vexoulz/platform-web` to `@vex/platform-web` (and `/chat`, `/vue`) when they bump to this release.
+  The `createPlatformUi` injection key is now `Symbol('vex-platform-ui')`; nothing outside the package reads it.
+
 ## 0.8.0
 
 ### Minor Changes
